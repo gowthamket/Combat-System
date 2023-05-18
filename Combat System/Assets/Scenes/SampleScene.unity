@@ -279,6 +279,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84a2f2225bae55e4ea42b9bb6920d460, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Forward:
+    primary: 0
+    alternate: 0
+  Backward:
+    primary: 0
+    alternate: 0
+  Right:
+    primary: 0
+    alternate: 0
+  Left:
+    primary: 0
+    alternate: 0
+  Sprint:
+    primary: 0
+    alternate: 0
 --- !u!65 &826023337
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -601,6 +616,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84a2f2225bae55e4ea42b9bb6920d460, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Forward:
+    primary: 0
+    alternate: 0
+  Backward:
+    primary: 0
+    alternate: 0
+  Right:
+    primary: 0
+    alternate: 0
+  Left:
+    primary: 0
+    alternate: 0
+  Sprint:
+    primary: 0
+    alternate: 0
 --- !u!65 &1096953162
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -757,6 +787,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84a2f2225bae55e4ea42b9bb6920d460, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Forward:
+    primary: 0
+    alternate: 0
+  Backward:
+    primary: 0
+    alternate: 0
+  Right:
+    primary: 0
+    alternate: 0
+  Left:
+    primary: 0
+    alternate: 0
+  Sprint:
+    primary: 0
+    alternate: 0
 --- !u!114 &1338514148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -770,7 +815,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _camera: {fileID: 963194227}
-  _followTransform: {fileID: 0}
+  _followTransform: {fileID: 1490446677}
   _framing: {x: 0, y: 0}
   _zoomSpeed: 10
   _defaultDistance: 5
@@ -786,3 +831,85 @@ MonoBehaviour:
   _obstructionLayers:
     serializedVersion: 2
     m_Bits: 55
+--- !u!4 &1338514149 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1d9510a07839e854eba684d1793a01ad, type: 3}
+  m_PrefabInstance: {fileID: 1338514145}
+  m_PrefabAsset: {fileID: 0}
+--- !u!136 &1338514150
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338514146}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  m_Radius: 0.25
+  m_Height: 1.8
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!54 &1338514151
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338514146}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 80
+  m_CollisionDetection: 0
+--- !u!114 &1338514152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338514146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b91a1820fafbcb74e8a2f6acda611f9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _runspeed: 6
+  _sprintSpeed: 8
+  _moveSharpness: 10
+  _rotationSharpness: 10
+--- !u!1 &1490446676
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1490446677}
+  m_Layer: 0
+  m_Name: CameraFollowPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1490446677
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1490446676}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1338514149}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
