@@ -32,6 +32,8 @@ namespace Gowtham
         [SerializeField] private LayerMask _obstructionLayers;
         private List<Collider> _ignoreColliders = new List<Collider> ();
 
+        public Vector3 CameraPlanarDirection { get => _planarDirection; }
+
         //Privates
         private Vector3 _planarDirection; //Cameras forward on the x,z plane
         private Quaternion _targetRotation;
