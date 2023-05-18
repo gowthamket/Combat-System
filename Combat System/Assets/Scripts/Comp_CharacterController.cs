@@ -7,8 +7,9 @@ namespace Gowtham
     public class Comp_CharacterController : MonoBehaviour
     {
         [Header("Movement")]
+        [SerializeField] private float _walkspeed = 2f;
         [SerializeField] private float _runspeed = 6f;
-        [SerializeField] private float _sprintSpeed = 8f;
+        [SerializeField] private float _sprintspeed = 8f;
 
         [Header("Sharpness")]
         [SerializeField] private float _moveSharpness = 10f;
@@ -17,6 +18,11 @@ namespace Gowtham
         private Animator _animator;
         private Comp_PlayerInputs _inputs;
         private Comp_CameraController _cameraController;
+
+        private bool _strafing;
+        private bool _sprinting;
+        private float _strafeParameter;
+        private Vector3 _strafeParametersXZ;
 
         private float _targetSpeed;
         private Quaternion _targetRotation;
@@ -38,14 +44,28 @@ namespace Gowtham
             Vector3 _cameraPlanarDirection = _cameraController.CameraPlanarDirection;
             Quaternion _cameraPlanarRotation = Quaternion.LookRotation(_cameraPlanarDirection);
 
-            Debug.DrawLine(transform.position, transform.position + _moveInputVector, Color.green);
-            _moveInputVector = _cameraPlanarRotation * _moveInputVector;
-            Debug.DrawLine(transform.position, transform.position + _moveInputVector, Color.red);
+           
+            Vector3 _moveInputVectorOriented = _cameraPlanarRotation * _moveInputVector;
+            
+            if (_strafing)
+            {
+                _sprinting = _inputs.Sprint.PressedDown() && (_moveInputVector != Vector3.zero);
+                _strafing = _inputs.Aim.PressedDown() && !_sprinting;
+            }
+            else
+            {
+                _sprinting = _inputs.Sprint.Pressed() && (_moveInputVector != Vector3.zero);
+                _strafing = _inputs.Aim.PressedDown();
+            }
 
             //Move speed
-            if (_inputs.Sprint.Pressed())
+            if (_sprinting)
             {
-                _targetSpeed = _moveInputVector != Vector3.zero ? _sprintSpeed : 0;
+                _targetSpeed = _moveInputVector != Vector3.zero ? _sprintspeed : 0;
+            }
+            else if (_strafing)
+            {
+                _targetSpeed = _moveInputVector != Vector3.zero ? _walkspeed : 0;
             }
             else
             {
@@ -53,13 +73,17 @@ namespace Gowtham
             }
             _newSpeed = Mathf.Lerp(_newSpeed, _targetSpeed, Time.deltaTime * _moveSharpness);
 
-            _newVelocity = _moveInputVector * _newSpeed;
+            _newVelocity = _moveInputVectorOriented * _newSpeed;
             _targetSpeed = _moveInputVector != Vector3.zero ? _runspeed : 0;
 
-            _newVelocity = _moveInputVector * _targetSpeed;
-            transform.Translate(_newVelocity * Time.deltaTime, Space.World);
-
-            if (_targetSpeed != 0)
+            //Rotation
+            if (_strafing)
+            {
+                _targetRotation = Quaternion.LookRotation(_cameraPlanarDirection);
+                _newRotation = Quaternion.Slerp(transform.rotation, _targetRotation, Time.deltaTime * _rotationSharpness);
+                transform.rotation = _newRotation;
+            }
+            else if (_targetSpeed != 0)
             {
                 _targetRotation = Quaternion.LookRotation(_moveInputVector);
                 _newRotation = Quaternion.Slerp(transform.rotation, _targetRotation, Time.deltaTime * _rotationSharpness);
@@ -67,9 +91,20 @@ namespace Gowtham
             }
 
             //Animations
-            _animator.SetFloat("Forward", _targetSpeed);
+            if (_strafing)
+            {
+                _strafeParameter = Mathf.Clamp01(_strafeParameter + (Time.deltaTime * 4));
+                _strafeParametersXZ = Vector3.Lerp(_strafeParametersXZ, _moveInputVector * _newSpeed, _moveSharpness * Time.deltaTime);
+            }
+            else
+            {
+                _strafeParameter = Mathf.Clamp01(_strafeParameter - (Time.deltaTime * 4));
+                _strafeParametersXZ = Vector3.Lerp(_strafeParametersXZ, Vector3.forward * _newSpeed, _moveSharpness * Time.deltaTime);
+            }
 
-
+            _animator.SetFloat("Strafing", _strafeParameter);
+            _animator.SetFloat("StrafeX", Mathf.Round(_strafeParametersXZ.x * 100f) / 100f);
+            _animator.SetFloat("StrafeZ", Mathf.Round(_strafeParametersXZ.z * 100f) / 100f);
         }
     }
 }
