@@ -11,7 +11,7 @@ namespace Gowtham
         [Header("Framing")]
         [SerializeField] private Camera _camera = null;
         [SerializeField] private Transform _followTransform = null;
-        [SerializeField] private Vector2 _framing = new Vector3(0,0,0);
+        [SerializeField] private Vector2 _framingNormal = new Vector3(0,0,0);
 
         [Header("Distance")]
         [SerializeField] private float _zoomSpeed = 10f;
@@ -33,8 +33,11 @@ namespace Gowtham
         private List<Collider> _ignoreColliders = new List<Collider> ();
 
         [Header("Lock On")]
+        [SerializeField] private float _lockOnLossTime = 15;
         [SerializeField] private float _lockOnDistance = 15;
         [SerializeField] private LayerMask _lockOnLayers = -1;
+        [SerializeField] private Vector3 _lockOnFraming = Vector3.zero;
+        [SerializeField, Range(1, 179)] private float _lockOnFOV = 40;
 
         //[SerializeField] private bool _lockedOn;
         //[SerializeField] private Transform _target;
@@ -45,6 +48,8 @@ namespace Gowtham
         public Vector3 CameraPlanarDirection { get => _planarDirection; }
 
         //Privates
+        private float _fovNormal;
+        private float _framingLerp;
         private Vector3 _planarDirection; //Cameras forward on the x,z plane
         private Quaternion _targetRotation;
         private float _targetVerticalAngle;
@@ -55,6 +60,7 @@ namespace Gowtham
         private Quaternion _newRotation;
 
         private bool _lockedOn;
+        private float _lockOnLossTimeCurrent;
         private ITargetable _target;
 
         private void OnValidate()
@@ -65,9 +71,11 @@ namespace Gowtham
 
         private void Start()
         {
+            //Ignore the players colliders
             _ignoreColliders.AddRange(GetComponentsInChildren<Collider>());
 
             //Important
+            _fovNormal = _camera.fieldOfView;
             _planarDirection = _followTransform.forward;
 
             //Calculate Targets
@@ -91,7 +99,11 @@ namespace Gowtham
             if (_invertX) { _mouseX *= -1f; }
             if (_invertY) { _mouseY *= -1f; }
 
-            Vector3 _focusPosition = _followTransform.TransformDirection(_framing);
+            //Framing
+            Vector3 _farming = Vector3.Lerp(_framingNormal, _lockOnFraming, _framingLerp);
+            Vector3 _focusPosition = _followTransform.TransformDirection(_framingNormal);
+            float _fov = Mathf.Lerp(_fovNormal, _lockOnFOV, _framingLerp);
+            _camera.fieldOfView = _fov;
 
             if (_lockedOn && _target != null)
             {
@@ -99,11 +111,14 @@ namespace Gowtham
                 Vector3 _planarCamToTarget = Vector3.ProjectOnPlane(_camToTarget, Vector3.up);
                 Quaternion _lookRotation = Quaternion.LookRotation(_camToTarget, Vector3.up);
 
+                _framingLerp = Mathf.Clamp01(_framingLerp + Time.deltaTime * 4);
                 _planarDirection = _planarCamToTarget != Vector3.zero ? _planarCamToTarget.normalized : _planarDirection;
                 _targetDistance = Mathf.Clamp(_targetDistance + _zoom, _minDistance, _maxDistance);
+                _targetVerticalAngle = Mathf.Clamp(_lookRotation.eulerAngles.x, _minVerticalAngle, _maxVerticalAngle);
             }
             else
             {
+                _framingLerp = Mathf.Clamp01(_framingLerp - Time.deltaTime * 4);
                 _planarDirection = Quaternion.Euler(0, _mouseX, 0) * _planarDirection;
                 _targetDistance = Mathf.Clamp(_targetDistance + _zoom, _minDistance, _maxDistance);
                 _targetVerticalAngle = Mathf.Clamp(_targetVerticalAngle + _mouseY, _minVerticalAngle, _maxVerticalAngle);
@@ -141,7 +156,18 @@ namespace Gowtham
 
             //Apply
             _camera.transform.position = _newPosition;
-            _camera.transform.rotation = Quaternion.LookRotation(Target.TargetTransform.position + _camera.transform.position, Vector3.up);
+            _camera.transform.rotation = _newRotation;
+            if (_lockedOn && _target != null)
+            {
+                bool _valid = 
+                    _target.Targetable && 
+                    InDistance(_target) &&
+                    InScreen(_target) &&
+                    NotBlocked(_target);
+
+                if (_valid) { _lockOnLossTimeCurrent = 0; }
+                else { _lockOnLossTimeCurrent = Mathf.Clamp(_lockOnLossTimeCurrent + Time.deltaTime, 0, _lockOnLossTime); }
+            }
             //_camera.transform.rotation = _targetRotation;
         }
 
@@ -179,7 +205,29 @@ namespace Gowtham
                         }
                     }
                 }
+                //Find closest targetal to screen center
+                float _hypotenuse;
+                float _smallestHypotenuse = Mathf.Infinity;
+                ITargetable _closestTargetable = null;
+                foreach (ITargetable _targetable in _targetables)
+                {
+                    _hypotenuse = CalculateHypotenuse(_targetable.TargetTransform.position);
+                    if (_smallestHypotenuse > _hypotenuse)
+                    {
+                        _closestTargetable = _targetable;
+                    }
+                }
+
+                //Final
+                _target = _closestTargetable;
+                _lockedOn = _closestTargetable != null; 
             }
+        }
+
+        private bool InDistance(ITargetable _targetable)
+        {
+            float _distance = Vector3.Distance(transform.position, _targetable.TargetTransform.position);
+            return _distance <= _lockOnDistance;
         }
 
         private bool InScreen(ITargetable targetable)
@@ -203,6 +251,19 @@ namespace Gowtham
             bool _notBlocked = !Physics.SphereCast(_origin, _radius, _direction, out RaycastHit _hit, _distance, _obstructionLayers);
 
             return _notBlocked;
+        }
+
+        private float CalculateHypotenuse(Vector3 position)
+        {
+            float _screenCenterX = _camera.pixelWidth / 2;
+            float _screenCenterY = _camera.pixelHeight / 2;
+
+            Vector3 _screenPosition = _camera.WorldToScreenPoint(position);
+            float _xDelta = _screenCenterX - _screenPosition.x;
+            float _yDelta = _screenCenterY - _screenPosition.y;
+            float _hypotenuse = Mathf.Sqrt(Mathf.Pow(_xDelta, 2) + Mathf.Pow(_yDelta, 2));
+
+            return _hypotenuse;
         }
     }
 }
