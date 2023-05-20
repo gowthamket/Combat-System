@@ -32,6 +32,7 @@ namespace Gowtham
         public Input Left;
         public Input Sprint;
         public Input Aim;
+        public Input LockOn;
 
         public int MoveAxisForwardRaw
         {

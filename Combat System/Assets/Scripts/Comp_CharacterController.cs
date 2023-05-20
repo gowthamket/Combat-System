@@ -46,7 +46,8 @@ namespace Gowtham
 
            
             Vector3 _moveInputVectorOriented = _cameraPlanarRotation * _moveInputVector;
-            
+
+            _strafing = _cameraController.LockedOn;
             if (_strafing)
             {
                 _sprinting = _inputs.Sprint.PressedDown() && (_moveInputVector != Vector3.zero);
@@ -56,6 +57,11 @@ namespace Gowtham
             {
                 _sprinting = _inputs.Sprint.Pressed() && (_moveInputVector != Vector3.zero);
                 _strafing = _inputs.Aim.PressedDown();
+            }
+
+            if (_sprinting)
+            {
+                _cameraController.ToggleLockOn(false);
             }
 
             //Move speed
@@ -73,13 +79,17 @@ namespace Gowtham
             }
             _newSpeed = Mathf.Lerp(_newSpeed, _targetSpeed, Time.deltaTime * _moveSharpness);
 
+            //Velocity
             _newVelocity = _moveInputVectorOriented * _newSpeed;
             _targetSpeed = _moveInputVector != Vector3.zero ? _runspeed : 0;
 
             //Rotation
             if (_strafing)
             {
-                _targetRotation = Quaternion.LookRotation(_cameraPlanarDirection);
+                Vector3 _toTarget = _cameraController.Target.TargetTransform.position - transform.position;
+                Vector3 _planarToTarget = Vector3.ProjectOnPlane(_toTarget, Vector3.up);
+
+                _targetRotation = Quaternion.LookRotation(_planarToTarget);
                 _newRotation = Quaternion.Slerp(transform.rotation, _targetRotation, Time.deltaTime * _rotationSharpness);
                 transform.rotation = _newRotation;
             }
@@ -105,6 +115,12 @@ namespace Gowtham
             _animator.SetFloat("Strafing", _strafeParameter);
             _animator.SetFloat("StrafeX", Mathf.Round(_strafeParametersXZ.x * 100f) / 100f);
             _animator.SetFloat("StrafeZ", Mathf.Round(_strafeParametersXZ.z * 100f) / 100f);
+
+            //Request Lock On
+            if (_inputs.LockOn.PressedDown())
+            {
+                _cameraController.ToggleLockOn(_cameraController.LockedOn);
+            }
         }
     }
 }
