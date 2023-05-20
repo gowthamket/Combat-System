@@ -29,6 +29,8 @@ public class Comp_PunchingBag : MonoBehaviour, ITargetable, IHurtResponder
 
     void IHurtResponder.Response(HitData data)
     {
-        Debug.Log("Hurt Response");
+        Vector3 _force = -data.hitNormal * data.damage;
+        Vector3 _point = data.hitPoint;
+        m_rbBag.AddForceAtPosition(_force, _point, ForceMode.Impulse);
     }
 }

@@ -102,6 +102,7 @@ namespace Gowtham
             //Framing
             Vector3 _farming = Vector3.Lerp(_framingNormal, _lockOnFraming, _framingLerp);
             Vector3 _focusPosition = _followTransform.TransformDirection(_framingNormal);
+
             float _fov = Mathf.Lerp(_fovNormal, _lockOnFOV, _framingLerp);
             _camera.fieldOfView = _fov;
 

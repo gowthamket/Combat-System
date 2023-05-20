@@ -33,6 +33,7 @@ namespace Gowtham
         public Input Sprint;
         public Input Aim;
         public Input LockOn;
+        public Input Attack;
 
         public int MoveAxisForwardRaw
         {
